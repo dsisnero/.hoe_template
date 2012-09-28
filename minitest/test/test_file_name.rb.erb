@@ -1,0 +1,10 @@
+require 'minitest/spec'
+require 'minitest/autorun'
+
+require "<%= file_name %>"
+
+describe <%= klass %> do
+ it "can be created" do
+   <%= klass%>.new.must_be_instance_of <%= klass %>
+ end
+end
