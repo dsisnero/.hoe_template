@@ -1,41 +1,58 @@
 # -*- ruby -*-
 
-require 'rubygems'
-require 'hoe'
+require "rubygems"
+require "hoe"
+require "asciidoctor"
+require "pry"
 
-Hoe.plugin :bundler
+class Hoe
+
+  def intuit_values
+    require 'asciidoctor'
+    doc = Asciidoctor.load_file readme_file
+    urls = { "home" => doc.attributes['uri-repo']}
+    desc = doc.blocks.find{|b| b.id =~ /description/i}.content
+    summ = desc.split(/\.\s+/).first(summary_sentences).join(". ")
+    self.urls ||= urls
+    self.description ||= desc
+    self.summary ||= summ
+  end
+
+end
 
 <%=
   found = Gem.find_files("hoe/*.rb").map { |f| File.basename(f, ".rb").to_sym }
-  extra = found - Hoe.plugins - [:rake] - [:bundler]
-  extra.map { |name| "# Hoe.plugin #{name.inspect}" }.sort.join("\n")
+  extra = (found - Hoe.plugins - [:rake]).sort.uniq
+
+  wanted = %i(bundler minitest yard)
+
+  no_comment = extra & wanted
+  comment = extra - wanted
+  out_name = ->(name){ "Hoe.plugin #{name.inspect}"}
+
+  comment_string = comment.map(&out_name).map{|n| "# #{n}"}
+  no_comment_string = no_comment.map(&out_name)
+  (comment_string | no_comment_string).join("\n")
+
+
 %>
 
-Hoe.spec '<%= project %>' do
+Hoe.spec "<%= project %>" do
+  developer("Dominic Sisneros","dsisnero@gmail.com")
 
-  developer('Dominic Sisneros', 'dsisnero@gmail.com')
-  # extra_deps << ['blah', '~> 1.0']
-  # extra_dev_deps << ['blah', '~>1.0']
-  # dependency(name,version,type)  :type one of :[:runtime, :dev,
-  # :development, :developer]
-  dependency('hoe-bundler', '> 0.0.0', :dev)
-  dependency('rspec', '> 0.0.0', :dev)
-  dependency('ZenTest', '> 0.0.0', :dev)
-  dependency('cucumber', '> 0.0.0', :dev)
-  dependency('aruba', '> 0.0.0', :dev)
+  dependency("hoe-bundler", "> 0.0",:development)
+  dependency("hoe-yard", "> 0.0",:development)
+  dependency("pry", "> 0.0", :development)
+  dependency("pry-byebug", "> 0.0", :development)
+  dependency("yard", "> 0.0", :development)
+  dependency("guard", "> 0.0", :development)
+  dependency("wdm", "> 0.1.0", :development) if Gem.win_platform?
+  dependency("guard-minitest", "> 0.0", :development)
 
-  ##
-  # Optional: Extra files you want to add to RDoc.
-  #
-  # .txt files are automatically included (excluding the obvious).
+  # dependency
 
-  # extra_rdoc_files
-
-  ##
-  # Optional: The filename for the project history. [default: History.txt]
-
-  # history_file
-
-
-  # self.rubyforge_name = '<%= project %>' # if different than '<%= project %>'
+  license "MIT" # this should match the license in the README
 end
+
+
+# vim: syntax=ruby

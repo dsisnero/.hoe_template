@@ -1,0 +1,18 @@
+require_relative 'test_helper'
+require "minitest/spec"
+require "minitest/autorun"
+
+
+require "<%= file_name %>"
+
+<%= make_sub_modules test_klass %>
+
+  describe <%= test_klass %> do
+
+    it 'starts with failing test' do
+       refute true
+    end
+
+  end
+
+end
